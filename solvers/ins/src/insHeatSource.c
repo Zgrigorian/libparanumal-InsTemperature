@@ -1,4 +1,3 @@
-
 /*
 
 The MIT License (MIT)
@@ -25,16 +24,12 @@ SOFTWARE.
 
 */
 
-#ifndef AUTOTESTER_H
-#define AUTOTESTER_H 1
+#include "ins.h"
 
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "mpi.h"
+void insHeatSource(ins_t *ins, dfloat time){
+   
+   mesh_t *mesh = ins->mesh;
+   
+   ins->heatSourceKernel(mesh->Nelements, time,mesh->o_x,mesh->o_y,ins->o_SourceVector);
 
-#include "setupAide.hpp"
-
-
-#endif
+}

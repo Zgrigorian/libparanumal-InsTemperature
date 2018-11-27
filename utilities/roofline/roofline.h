@@ -1,7 +1,7 @@
 
 /*
 
-The MIT License (MIT)
+MIT License (MIT)
 
 Copyright (c) 2017 Tim Warburton, Noel Chalmers, Jesse Chan, Ali Karakus
 
@@ -33,7 +33,7 @@ SOFTWARE.
 #include <stdio.h>
 #include <string.h>
 #include "mpi.h"
-
+#include "occa.hpp"
 #include "setupAide.hpp"
 
 

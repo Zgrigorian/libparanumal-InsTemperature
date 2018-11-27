@@ -22,15 +22,15 @@ CFLAGS = $(compilerFlags) $(flags) -I$(HDRDIR) -I$(GSDIR) -g  -D DHOLMES='"${CUR
 
 
 # link flags to be used
-LDFLAGS	= -L$(OCCA_DIR)/lib $(compilerFlags) $(flags) -g
-# -L../../3rdParty/gslib.github  -lgs -L$(ALMONDDIR) -lparALMOND
+LDFLAGS	= -L$(OCCA_DIR)/lib $(compilerFlags) $(flags) -g -L../../3rdParty/gslib/lib  -lgs \
+			-L$(ALMONDDIR) -lparALMOND
 
 # libraries to be linked in
 LIBS	=  $(links) -L../../3rdParty/BlasLapack -lBlasLapack -lgfortran
 
 #-llapack -lblas
 
-INCLUDES = autoTester.h
+INCLUDES = roofline.h
 DEPS = $(INCLUDES) 
 
 # types of files we are going to construct rules for
@@ -46,12 +46,12 @@ LOBJS = \
 ../../src/timer.o\
 ../../src/trace.o 
 
-autoTester:../../src/matrix.o  ../../src/setupAide.o ../../src/trace.o autoTester.o
-	$(LD) $(LDFLAGS) -o autoTester autoTester.o ../../src/matrix.o  ../../src/trace.o ../../src/setupAide.o $(paths) $(LIBS)
+roofline:../../src/matrix.o  ../../src/setupAide.o ../../src/trace.o roofline.o
+	$(LD) $(LDFLAGS) -o roofline roofline.o ../../src/matrix.o  ../../src/trace.o ../../src/setupAide.o $(paths) $(LIBS)
 
-all: autoTester
+all: roofline
 
 # what to do if user types "make clean"
 clean:
-	rm *.o autoTester
+	rm *.o roofline
 

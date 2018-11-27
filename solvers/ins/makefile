@@ -80,6 +80,9 @@ AOBJS    = \
 ./src/insIsoPlotVTU.o \
 ./src/insHeatAdvection.o \
 ./src/insHeatVelocityRhs.o \
+./src/insHeatSource.o \
+./src/insHeatGradient.o \
+./src/insHeatLaplacian.o \
 ./src/insHeatVelocitySolve.o 
 
 # library objects

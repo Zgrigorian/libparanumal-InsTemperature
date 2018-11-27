@@ -213,6 +213,8 @@ SOFTWARE.
                                 const dfloat idt,
                                 const dfloat inu,
                                 const dfloat ialpha,
+                                const dfloat source,
+                                const dfloat eta,
                                 @restrict const  dfloat *  extbdfA,
                                 @restrict const  dfloat *  extbdfB,
                                 @restrict const  dfloat *  extbdfC,
@@ -222,16 +224,21 @@ SOFTWARE.
                                 @restrict const  dfloat *  NU,
                                 @restrict const  dfloat *  NT,
                                 @restrict const  dfloat *  GP,
-                                      @restrict dfloat *  rhsU,
-                                      @restrict dfloat *  rhsV,
-                                      @restrict dfloat *  rhsW,
-                                      @restrict dfloat *  rhsT){
+                                @restrict const  dfloat *  SourceVector,
+                                @restrict const  dfloat *  LT,
+                                @restrict const  dfloat *  g,
+                                       @restrict dfloat *  rhsU,
+                                       @restrict dfloat *  rhsV,
+                                       @restrict dfloat *  rhsW,
+                                       @restrict dfloat *  rhsT){
 
   for(dlong eo=0;eo<Nelements;eo+=p_NblockV;@outer(0)){
 
     @shared dfloat s_rhsU[p_NblockV][p_Np];
     @shared dfloat s_rhsV[p_NblockV][p_Np];
     @shared dfloat s_rhsT[p_NblockV][p_Np];
+    @shared dfloat s_rhsS[p_NblockV][p_Np];
+    @shared dfloat s_rhsL[p_NblockV][p_Np];
 
     for(int es=0;es<p_NblockV;++es;@inner(1)){// for all elements in block
       for(int n=0;n<p_Np;++n;@inner(0)){     // for all nodes in this element
@@ -263,7 +270,9 @@ SOFTWARE.
             s_rhsU[es][n] = 0.f;
             s_rhsV[es][n] = 0.f;
             s_rhsT[es][n] = 0.f;
-
+            s_rhsS[es][n] = J*ialpha*SourceVector[id];
+            s_rhsL[es][n] = J*eta*LT[id];
+ 
             for (int s=0;s<p_Nstages;s++) {
               //U 
               const dfloat Um  = U[id+0*fieldOffset+s*p_NVfields*fieldOffset];
@@ -302,9 +311,14 @@ SOFTWARE.
           #pragma unroll p_Np
             for(int i=0;i<p_Np;++i){
               const dfloat M = MM[n+i*p_Np];
-              rhsu  += M*s_rhsU[es][i];
-              rhsv  += M*s_rhsV[es][i];
-              rhst  += M*s_rhsT[es][i];
+
+              rhsu  += M*(s_rhsU[es][i]);
+              rhsv  += M*(s_rhsV[es][i]-9.8*s_rhsL[es][i]);
+              rhst  += M*(s_rhsT[es][i]+s_rhsS[es][n]);
+
+//              rhsu  += M*(s_rhsU[es][i]-g[1]*s_rhsL[es][n]);
+//              rhsv  += M*(s_rhsV[es][i]-g[2]*s_rhsL[es][n]);
+//              rhst  += M*(s_rhsT[es][i]+s_rhsS[es][n]);
             }
           // Update
           rhsU[id] = rhsu;

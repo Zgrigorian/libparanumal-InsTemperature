@@ -124,9 +124,9 @@ SOFTWARE.
 {                                   \
   if(bc==1){                        \
     if(ny>0)                        \
-    *(tB) = 1.f;                    \
+    *(tB) = 78.f;                    \
     else                            \
-    *(tB) = -1.f;                   \
+    *(tB) = 90.f;                   \
   } else if(bc==2){                 \
     *(tB) = p_tbar;                 \
   } else if(bc==3){                 \

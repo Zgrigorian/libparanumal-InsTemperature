@@ -1,5 +1,6 @@
 /*
 
+
 The MIT License (MIT)
 
 Copyright (c) 2017 Tim Warburton, Noel Chalmers, Jesse Chan, Ali Karakus
@@ -237,7 +238,7 @@ ins_t *insSetup(mesh_t *mesh, setupAide options){
   // compute samples of q at interpolation nodes
   ins->U     = (dfloat*) calloc(ins->NVfields*ins->Nstages*Ntotal,sizeof(dfloat));
   ins->P     = (dfloat*) calloc(              ins->Nstages*Ntotal,sizeof(dfloat));
-
+//  ins->SourceVector = (dfloat*) calloc(ins->Ntotal,sizeof(dfloat));
    //rhs storage
   ins->rhsU  = (dfloat*) calloc(Ntotal,sizeof(dfloat));
   ins->rhsV  = (dfloat*) calloc(Ntotal,sizeof(dfloat));
@@ -266,8 +267,12 @@ ins_t *insSetup(mesh_t *mesh, setupAide options){
   if(ins->solveHeat){
     ins->T     = (dfloat*) calloc(              ins->Nstages*Ntotal,sizeof(dfloat));
     ins->NT    = (dfloat*) calloc(          (ins->Nstages+1)*Ntotal,sizeof(dfloat));
-    ins->rkT  =  (dfloat*) calloc(                           Ntotal,sizeof(dfloat));
+    ins->rkT   = (dfloat*) calloc(                           Ntotal,sizeof(dfloat));
     ins->rhsT  = (dfloat*) calloc(                           Ntotal,sizeof(dfloat));
+    ins->SourceVector = (dfloat*) calloc(                    Ntotal,sizeof(dfloat));
+    ins->Tx    = (dfloat*) calloc(                           Ntotal,sizeof(dfloat));
+    ins->Ty    = (dfloat*) calloc(                           Ntotal,sizeof(dfloat));
+    ins->LT    = (dfloat*) calloc(                           Ntotal,sizeof(dfloat));
   }
 
   //extra storage for interpolated fields
@@ -316,6 +321,14 @@ ins_t *insSetup(mesh_t *mesh, setupAide options){
   // Thermal diffusivity
   if(ins->solveHeat)    
     options.getArgs("THERMAL DIFFUSIVITY", ins->alpha);
+  
+  //Source Term
+  if(ins->solveHeat)
+    options.getArgs("INTERNAL HEAT PRODUCTION", ins->source);
+
+  //Thermal Expansion Coefficient
+  if(ins->solveHeat)
+    options.getArgs("THERMAL EXPANSION COEFFICIENT", ins->eta);
 
   //Reynolds / Prandtl number
   ins->Re = ins->ubar/ins->nu; // assumes unit characteristic length
@@ -367,10 +380,13 @@ ins_t *insSetup(mesh_t *mesh, setupAide options){
 
   ins->o_U = mesh->device.malloc(ins->NVfields*ins->Nstages*Ntotal*sizeof(dfloat), ins->U);
   ins->o_P = mesh->device.malloc(              ins->Nstages*Ntotal*sizeof(dfloat), ins->P);
-  if(ins->solveHeat)
+  if(ins->solveHeat){
     ins->o_T = mesh->device.malloc(            ins->Nstages*Ntotal*sizeof(dfloat), ins->T);
-
-
+    ins->o_SourceVector = mesh->device.malloc( ins->        Ntotal*sizeof(dfloat), ins->SourceVector);
+    ins->o_Tx =           mesh->device.malloc( ins->        Ntotal*sizeof(dfloat), ins->Tx);
+    ins->o_Ty =           mesh->device.malloc( ins->        Ntotal*sizeof(dfloat), ins->Ty);
+    ins->o_LT =           mesh->device.malloc( ins->        Ntotal*sizeof(dfloat), ins->LT); 
+  }
 #if 0
   if (mesh->rank==0 && options.compareArgs("VERBOSE","TRUE")) 
     occa::setVerboseCompilation(true);
@@ -974,7 +990,6 @@ if(ins->solveHeat){
 
         sprintf(kernelName, "insHeatAdvectionCubatureSurface%s",suffix);
         ins->heatAdvectionCubatureSurfaceKernel = mesh->device.buildKernel(fileName,kernelName,kernelInfo);
-
       }else{
         sprintf(fileName, DINS "/okl/insAdvection%s.okl", suffix);
         sprintf(kernelName, "insAdvectionCubatureVolume%s", suffix);
@@ -1023,7 +1038,6 @@ if(ins->solveHeat){
 
       // ===========================================================================
       if(ins->solveHeat){
-
        sprintf(fileName, DINS "/okl/insVelocityRhs%s.okl", suffix);
       if (options.compareArgs("TIME INTEGRATOR", "ARK"))
         printf("ARK with Heat solver is not implemented yet\n"); 
@@ -1061,7 +1075,33 @@ if(ins->solveHeat){
       ins->velocityAddBCKernel =  mesh->device.buildKernel(fileName, kernelName, kernelInfo);
       }
       // ===========================================================================
+      if(ins->solveHeat){
+       sprintf(fileName, DINS "/okl/insHeatSource%s.okl", suffix);
+       sprintf(kernelName,"insHeatSource%s", suffix);
+       ins->heatSourceKernel = mesh->device.buildKernel(fileName, kernelName, kernelInfo);
+
+       sprintf(fileName, DINS "/okl/insHeatGradient%s.okl", suffix);
+       sprintf(kernelName,"insHeatGradientVolume%s", suffix);
+       ins->heatGradientVolumeKernel = mesh->device.buildKernel(fileName, kernelName,kernelInfo);
       
+        
+       sprintf(fileName, DINS "/okl/insHeatGradient%s.okl", suffix);
+       sprintf(kernelName,"insHeatGradientSurface%s", suffix);
+       ins->heatGradientSurfaceKernel = mesh->device.buildKernel(fileName, kernelName,kernelInfo);
+
+       sprintf(fileName, DINS "/okl/insHeatLaplacian%s.okl", suffix);
+       sprintf(kernelName,"insHeatLaplacian%s", suffix);
+       ins->heatLaplacianKernel = mesh->device.buildKernel(fileName, kernelName,kernelInfo);
+
+//       sprintf(kernelName,"insHeatLaplacianSurface%s",suffix);
+//       ins->heatLaplacianSurfaceKernel = mesh->device.buildKernel(fileName, kernelName,kernelInfo);
+       }
+     // if(ins->solveHeat){
+     //  sprintf(fileName, DINS "/okl/insHeatGradient%s.okl", suffix);
+     //  sprintf(kernelName,"insHeatGradient%s", suffix);
+     //  ins->heatGradientKernel = mesh->device.buildKernel(fileName, kernelName, kernelInfo);
+     // }
+     
       sprintf(fileName, DINS "/okl/insPressureRhs%s.okl", suffix);
       sprintf(kernelName, "insPressureRhs%s", suffix);
       ins->pressureRhsKernel =  mesh->device.buildKernel(fileName, kernelName, kernelInfo);

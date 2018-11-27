@@ -45,8 +45,8 @@ EXTBDF2
 
 # can be CUBATURE or COLLOCATION
 [ADVECTION TYPE]
-#COLLOCATION
-CUBATURE
+COLLOCATION
+#CUBATURE
 
 # 1/Re in nondimesional form
 [VISCOSITY]
@@ -54,14 +54,20 @@ CUBATURE
 
 # 1/(Re*Pr) number in nondimensinal form
 [THERMAL DIFFUSIVITY]
-0.001
+0.01
 
+#1 for on, 0 for off
+[INTERNAL HEAT PRODUCTION]
+1
+
+[THERMAL EXPANSION COEFFICIENT]
+0.000303
 
 [MACH NUMBER]
 .2
 
 [UBAR]
-1.0
+2.0
 
 [VBAR]
 0.0
@@ -82,13 +88,13 @@ CUBATURE
 
 # zero to ignore, only ARK stepper
 [TSTEPS FOR TIME STEP ADAPT]
-100
+250
 
 [START TIME]
 0
 
 [FINAL TIME]
-100.0
+.0005
 
 [CFL]
 0.3
@@ -107,7 +113,7 @@ VTU
 insRestartTri2D
 
 [OUTPUT FILE NAME]
-Tins
+FinalTrial
 
 #################################################
 ########## Velocity Solver Options ##############

@@ -30,6 +30,8 @@ SOFTWARE.
                                         const dlong offset,
                                         @restrict const  dfloat *  U,
                                         @restrict const  dfloat *  T,
+                                        @restrict dfloat *  Tx,
+                                        @restrict dfloat *  Ty,
                                         @restrict dfloat *  NU,
                                         @restrict dfloat *  NT){
 
@@ -41,6 +43,8 @@ SOFTWARE.
 
     @shared dfloat s_FT1[p_NblockV][p_Np];
     @shared dfloat s_FT2[p_NblockV][p_Np];
+
+    @shared dfloat s_FT0[p_NblockV][p_Np];
 
     for(int es=0;es<p_NblockV;++es;@inner(1)){// for all elements in block
       for(int n=0;n<p_Np;++n;@inner(0)){     // for all nodes in this element
@@ -57,7 +61,8 @@ SOFTWARE.
           //
           s_FT1[es][n] = u*t;
           s_FT2[es][n] = v*t;
-
+          //
+          s_FT0[es][n] = t;
         }
       }
     }
@@ -81,6 +86,7 @@ SOFTWARE.
           
           dfloat dft1dr = 0.f, dft1ds = 0.f; 
           dfloat dft2dr = 0.f, dft2ds = 0.f; 
+          dfloat dft0dr = 0.f, dft0ds = 0.f;
 
           #pragma unroll p_Np
             for(int i=0;i<p_Np;++i){
@@ -93,6 +99,8 @@ SOFTWARE.
 
               const dfloat ft1 = s_FT1[es][i];
               const dfloat ft2 = s_FT2[es][i];
+
+              const dfloat ft0 = s_FT0[es][i];
 
               df11dr += Drni*f11;
               df11ds += Dsni*f11;
@@ -108,6 +116,9 @@ SOFTWARE.
 
               dft2dr += Drni*ft2;
               dft2ds += Dsni*ft2;
+
+              dft0dr += Drni*ft0;
+              dft0ds += Dsni*ft0;
             }
 
           // NU = del(u1xu1)/ dx + del(u1xu2)/dy
@@ -121,11 +132,16 @@ SOFTWARE.
           const dfloat nt = drdx*dft1dr + dsdx*dft1ds 
                           + drdy*dft2dr + dsdy*dft2ds;
 
+          const dfloat tx = drdx*dft0dr + dsdx*dft0ds;
+          const dfloat ty = drdy*dft0dr + dsdy*dft0ds;
+
           // Update
           const dlong id = e*p_Np+n;
           NU[id+0*offset] = nu;
           NU[id+1*offset] = nv;           
           NT[id+0*offset] = nt;           
+          Tx[id]          = tx;
+          Ty[id]          = ty;
         }
       }
     }
@@ -147,6 +163,8 @@ SOFTWARE.
                                           const dlong offset,
                                           @restrict const  dfloat *  U,
                                           @restrict const  dfloat *  T,
+                                          @restrict dfloat *  Tx,
+                                          @restrict dfloat *  Ty,
                                           @restrict dfloat *  NU,
                                           @restrict dfloat *  NT){
 
@@ -156,6 +174,9 @@ SOFTWARE.
     @shared dfloat s_fluxNx[p_NblockS][p_Nfp*p_Nfaces];
     @shared dfloat s_fluxNy[p_NblockS][p_Nfp*p_Nfaces];
     @shared dfloat s_fluxNt[p_NblockS][p_Nfp*p_Nfaces];
+    @shared dfloat s_fluxTx[p_NblockS][p_Nfp*p_Nfaces];
+    @shared dfloat s_fluxTy[p_NblockS][p_Nfp*p_Nfaces];
+
     // for all face nodes of all elements
     for(int es=0;es<p_NblockS;++es;@inner(1)){
       for(int n=0;n<p_maxNodes;++n;@inner(0)){ // maxNodes = max(Nfp*Nfaces,Np)
@@ -200,6 +221,8 @@ SOFTWARE.
                                       + ny*(vP*vP - vM*vM) + unMax*(vM-vP) ));
             s_fluxNt[es][n] = sc*(.5f*( nx*(tP*uP - tM*uM) 
                                       + ny*(tP*vP - tM*vM) + unMax*(tM-tP) ));
+            s_fluxTx[es][n] = sc*.5f*(nx*tP-tM);
+            s_fluxTy[es][n] = sc*.5f*(ny*tP-tM);
           }
         }
       }
@@ -219,6 +242,8 @@ SOFTWARE.
             dfloat rhsnu = NU[id+0*offset];
             dfloat rhsnv = NU[id+1*offset];
             dfloat rhsnt = NT[id+0*offset];
+            dfloat rhstx = Tx[id];
+            dfloat rhsty = Ty[id];
             // Lift
             #pragma unroll p_NfacesNfp
               for(int m=0;m<p_Nfaces*p_Nfp;++m){
@@ -226,11 +251,15 @@ SOFTWARE.
                 rhsnu  += L*s_fluxNx[es][m];
                 rhsnv  += L*s_fluxNy[es][m];
                 rhsnt  += L*s_fluxNt[es][m];
+                rhstx  += L*s_fluxTx[es][m];
+                rhsty  += L*s_fluxTy[es][m];
               }
 
             NU[id+0*offset] = rhsnu;
             NU[id+1*offset] = rhsnv;
             NT[id+0*offset] = rhsnt;
+            Tx[id]          = rhstx;
+            Ty[id]          = rhsty;
           }
         }
       }
