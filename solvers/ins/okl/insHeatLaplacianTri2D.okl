@@ -122,7 +122,7 @@ SOFTWARE.
                   dfloat TyP = Ty[idP];
 
                   const dfloat sc = invJ * sJ;
-                  s_fluxTot[es][n] = .5f*sc*nx*(TxP-TxM)+ny*(TyP-TyM)));
+                  s_fluxTot[es][n] = .5f*sc*nx*((TxP-TxM)+ny*(TyP-TyM));
                }
             }
          }
