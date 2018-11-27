@@ -116,13 +116,13 @@ SOFTWARE.
                   const dlong idP = vmapP[id];
 
                   // load negative and postive trace node values of Tx and Ty
-                  dfloat TxM = Tx[4];
-                  dfloat TxP = Tx[4];
-                  dfloat TyM = Ty[4];
-                  dfloat TyP = Ty[4];
+                  dfloat TxM = Tx[idM];
+                  dfloat TxP = Tx[idP];
+                  dfloat TyM = Ty[idM];
+                  dfloat TyP = Ty[idP];
 
                   const dfloat sc = invJ * sJ;
-                  s_fluxTot[es][n] = .5f*sc*nx*(TxP-TxM);//+ny*(TyP-TyM)));
+                  s_fluxTot[es][n] = .5f*sc*nx*(TxP-TxM)+ny*(TyP-TyM)));
                }
             }
          }
