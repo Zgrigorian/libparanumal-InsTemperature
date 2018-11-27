@@ -1,3 +1,12 @@
+##Instructions for running Temperature
+1. Temperature solver is only implemented for 2D triangular nodes
+2. Make sure to use the insHeat.dat file as the data file
+3. To turn the temperature solver on put the flow field to coupled
+4. Use EXTBDF for the time integrator 
+5. Indicate the Thermal Expansion Coeffcient (for buoyancy effects)
+6. Navigate to insHeatSource.okl and determine your source function
+7. Run using ./insMain setups/setupTri2D.rc
+
 ## libParanumal
 An experimental set of finite element flow solvers for heterogeneous (GPU/CPU) systems. The initial development of libParanumal was performed by the [Parallel Numerical Algorithms Group at Virginia Tech](http://paranumal.com).   
 
