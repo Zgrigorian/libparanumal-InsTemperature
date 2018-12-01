@@ -265,6 +265,10 @@ ins_t *insSetup(mesh_t *mesh, setupAide options){
 
   if(ins->solveHeat){
     ins->T     = (dfloat*) calloc(              ins->Nstages*Ntotal,sizeof(dfloat));
+    ins->SourceVector = (dfloat*) calloc(		     Ntotal,sizeof(dfloat));
+    ins->Tx    = (dfloat*) calloc(                           Ntotal,sizeof(dfloat));
+    ins->Ty    = (dfloat*) calloc(                           Ntotal,sizeof(dfloat));
+    ins->LT    = (dfloat*) calloc(                           Ntotal,sizeof(dfloat));
     ins->NT    = (dfloat*) calloc(          (ins->Nstages+1)*Ntotal,sizeof(dfloat));
     ins->rkT  =  (dfloat*) calloc(                           Ntotal,sizeof(dfloat));
     ins->rhsT  = (dfloat*) calloc(                           Ntotal,sizeof(dfloat));
@@ -316,6 +320,10 @@ ins_t *insSetup(mesh_t *mesh, setupAide options){
   // Thermal diffusivity
   if(ins->solveHeat)    
     options.getArgs("THERMAL DIFFUSIVITY", ins->alpha);
+
+  //Thermal Expansion Coefficient
+  if(ins->solveHeat)
+    options.getArgs("THERMAL EXPANSION COEFFICIENT", ins->eta);
 
   //Reynolds / Prandtl number
   ins->Re = ins->ubar/ins->nu; // assumes unit characteristic length
@@ -369,6 +377,10 @@ ins_t *insSetup(mesh_t *mesh, setupAide options){
   ins->o_P = mesh->device.malloc(              ins->Nstages*Ntotal*sizeof(dfloat), ins->P);
   if(ins->solveHeat)
     ins->o_T = mesh->device.malloc(            ins->Nstages*Ntotal*sizeof(dfloat), ins->T);
+    ins->o_SourceVector = mesh->device.malloc( ins->        Ntotal*sizeof(dfloat), ins->SourceVector);
+    ins->o_Tx =           mesh->device.malloc( ins->        Ntotal*sizeof(dfloat), ins->Tx);
+    ins->o_Ty =           mesh->device.malloc( ins->        Ntotal*sizeof(dfloat), ins->Ty);
+    ins->o_LT =           mesh->device.malloc( ins->        Ntotal*sizeof(dfloat), ins->LT); 
 
 
 #if 0
@@ -1061,7 +1073,16 @@ if(ins->solveHeat){
       ins->velocityAddBCKernel =  mesh->device.buildKernel(fileName, kernelName, kernelInfo);
       }
       // ===========================================================================
-      
+      if(ins->solveHeat){
+       sprintf(fileName, DINS "/okl/insHeatSource%s.okl", suffix);
+       sprintf(kernelName,"insHeatSource%s", suffix);
+       ins->heatSourceKernel = mesh->device.buildKernel(fileName, kernelName, kernelInfo);
+
+       sprintf(fileName, DINS "/okl/insHeatLaplacian%s.okl", suffix);
+       sprintf(kernelName,"insHeatLaplacian%s", suffix);
+       ins->heatLaplacianKernel = mesh->device.buildKernel(fileName, kernelName,kernelInfo);
+      }
+      // ============================================================================
       sprintf(fileName, DINS "/okl/insPressureRhs%s.okl", suffix);
       sprintf(kernelName, "insPressureRhs%s", suffix);
       ins->pressureRhsKernel =  mesh->device.buildKernel(fileName, kernelName, kernelInfo);

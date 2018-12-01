@@ -130,6 +130,8 @@ void insRunEXTBDF(ins_t *ins){
 
 
     if(ins->solveHeat){
+      insHeatSource       (ins, time+ins->dt);
+      insHeatLaplacian    (ins);
       insHeatVelocityRhs  (ins, time+ins->dt, ins->Nstages, ins->o_rhsU, ins->o_rhsV, ins->o_rhsW, ins->o_rhsT);
       insHeatVelocitySolve(ins, time+ins->dt, ins->Nstages, ins->o_rhsU, ins->o_rhsV, ins->o_rhsW, ins->o_rhsT, ins->o_rkU, ins->o_rkT);
     }else{

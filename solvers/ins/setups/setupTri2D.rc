@@ -45,8 +45,8 @@ EXTBDF2
 
 # can be CUBATURE or COLLOCATION
 [ADVECTION TYPE]
-#COLLOCATION
-CUBATURE
+COLLOCATION
+#CUBATURE
 
 # 1/Re in nondimesional form
 [VISCOSITY]
@@ -54,14 +54,16 @@ CUBATURE
 
 # 1/(Re*Pr) number in nondimensinal form
 [THERMAL DIFFUSIVITY]
-0.001
+0.01
 
+[THERMAL EXPANSION COEFFICIENT]
+0.000
 
 [MACH NUMBER]
 .2
 
 [UBAR]
-1.0
+2.0
 
 [VBAR]
 0.0
@@ -70,11 +72,11 @@ CUBATURE
 0.0
 
 [TBAR]
-0.0
+1.0
 
 #zero to ignore
 [TSTEPS FOR SOLUTION OUTPUT]
-250
+150
 
 # zero to ignore
 [TSTEPS FOR FORCE OUTPUT]
@@ -88,7 +90,7 @@ CUBATURE
 0
 
 [FINAL TIME]
-100.0
+2
 
 [CFL]
 0.3

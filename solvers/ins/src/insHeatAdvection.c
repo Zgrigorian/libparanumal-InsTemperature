@@ -74,6 +74,8 @@ void insHeatAdvection(ins_t *ins, dfloat time, occa::memory o_U, occa::memory o_
                                ins->fieldOffset,
                                o_U,
                                o_T,
+			       ins->o_Tx,
+                               ins->o_Ty,
                                o_NU,
                                o_NT);
   }
@@ -129,6 +131,8 @@ void insHeatAdvection(ins_t *ins, dfloat time, occa::memory o_U, occa::memory o_
                                 ins->fieldOffset,
                                 o_U,
                                 o_T,
+                                ins->o_Tx,
+                                ins->o_Ty,
                                 o_NU,
                                 o_NT);
   }
