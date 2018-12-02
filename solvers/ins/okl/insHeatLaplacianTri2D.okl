@@ -147,7 +147,7 @@ SOFTWARE.
 	      const dfloat L = LIFTT[n+m*p_Np];
 	      lt += L*s_fluxTot[es][m];
 	    }
-	    LT[id] = 0;
+	    LT[id] = lt;
 	  }
 	}
       }
