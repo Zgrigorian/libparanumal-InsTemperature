@@ -52,7 +52,6 @@ SOFTWARE.
 	       
 	  s_Tx[es][n] = tx;
 	  s_Ty[es][n] = ty;
-	  LT[id]=0;
 	}
       }
     }
