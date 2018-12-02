@@ -205,6 +205,8 @@ typedef struct {
   occa::kernel pressureHaloScatterKernel;
   occa::kernel heatHaloExtractKernel;
   occa::kernel heatHaloScatterKernel;
+  occa::kernel heatLaplacianHaloExtractKernel;
+  occa::kernel heatLaplacianHaloScatterKernel;
 
   occa::kernel setFlowFieldKernel;
 

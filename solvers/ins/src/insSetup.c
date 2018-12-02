@@ -971,7 +971,11 @@ if(ins->solveHeat){
       sprintf(kernelName, "insPressureHaloScatter");
       ins->pressureHaloScatterKernel =  mesh->device.buildKernel(fileName, kernelName, kernelInfo);
 
+      sprintf(kernelName, "insHeatLaplacianHaloExtract");
+      ins->heatLaplacianHaloExtractKernel = mesh->device.buildKernel(fileName, kernelName, kernelInfo);
 
+      sprintf(kernelName, "insHeatLaplacianHaloScatter");
+      ins->heatLaplacianHaloScatterKernel = mesh->device.buildKernel(fileName, kernelName, kernelInfo);
       // ===========================================================================
       if(ins->solveHeat){
         sprintf(fileName, DINS "/okl/insHeatAdvection%s.okl", suffix);

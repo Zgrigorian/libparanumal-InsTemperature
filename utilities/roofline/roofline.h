@@ -1,7 +1,7 @@
 
 /*
 
-The MIT License (MIT)
+MIT License (MIT)
 
 Copyright (c) 2017 Tim Warburton, Noel Chalmers, Jesse Chan, Ali Karakus
 
@@ -25,24 +25,16 @@ SOFTWARE.
 
 */
 
-@kernel void insHeatSourceTri2D(const dlong Nelements,
-				  const dfloat   time,
-                        @restrict const dfloat * xcoords,
-                        @restrict const dfloat * ycoords,
-                        @restrict       dfloat * source){
+#ifndef AUTOTESTER_H
+#define AUTOTESTER_H 1
 
-   for(dlong eo=0;eo<Nelements;eo+=p_NblockV;@outer(0)){
-      for(int es=0;es<p_NblockV;++es;@inner(1)){//For all elements in block
-         for(int n=0;n<p_Np;++n;@inner(0)){
-            const dlong e = eo+es; //element in block
-            if(e<Nelements){
-               const dlong id = n + p_Np*e; //Current Node
-	       const dlong x = xcoords[id]; //x-coordinate of current node
-	       const dlong y = ycoords[id]; //y-ccordinate of current node
-	       const dlong t = time+1;
-               source[id]    = 0;
-            }
-         }
-      }
-   }
-}
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "mpi.h"
+#include "occa.hpp"
+#include "setupAide.hpp"
+
+
+#endif

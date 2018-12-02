@@ -137,3 +137,42 @@ SOFTWARE.
     }
   }
 }
+
+@kernel void insHeatLaplacianHaloExtract(const dlong Nelements,
+                                const dlong NhaloElements,
+                                @restrict const  dlong  *  haloElements,   
+                                @restrict const  dfloat *  T,
+                                @restrict const  dfloat *  Tx,
+				@restrict const  dfloat *  Ty,
+                                @restrict dfloat *  haloq){
+
+  for(dlong e=0;e<NhaloElements;++e;@outer(0)){ // for all elements
+    for(int n=0;n<p_Np;++n;@inner(0)){     // for all entries in this element
+     const dlong id   = n + p_Np*haloElements[e];
+      const dlong base = n + (p_NVfields+1)*p_Np*e;
+
+      haloq[base + 0*p_Np] = T[id];
+      haloq[base + 1*p_Np] = Tx[id];
+      haloq[base + 2*p_Np] = Ty[id];
+    }
+  }
+}
+
+@kernel void insHeatLaplacianHaloScatter(const dlong Nelements,
+                                const dlong NhaloElements,
+                                @restrict dfloat *  T,
+                                @restrict dfloat *  Tx,
+				@restrict dfloat *  Ty,
+                                @restrict const  dfloat *  haloq){
+
+  for(dlong e=0;e<NhaloElements;++e;@outer(0)){ // for all elements
+    for(int n=0;n<p_Np;++n;@inner(0)){ 
+      const dlong id   = n + p_Np*(e+Nelements);
+      const dlong base =  n + p_Np*e;
+
+      T[id] = haloq[base + 0*p_Np];
+      Tx[id]= haloq[base + 1*p_Np];
+      Ty[id]= haloq[base + 2*p_Np];
+    }
+  }
+}

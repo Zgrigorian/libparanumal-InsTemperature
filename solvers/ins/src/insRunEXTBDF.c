@@ -304,7 +304,7 @@ void extbdfCoefficents(ins_t *ins, int order) {
     ins->lambda = ins->g0 / (ins->dt * ins->nu);
     ins->ig0 = 1.0/ins->g0; 
   } else if(order==3) {
-    //advection, third order in time, increment
+   //advection, third order in time, increment
     ins->g0 =  11.f/6.f;
     dfloat extbdfB[3] = {3.0f,-1.5f, 1.0f/3.0f};
     dfloat extbdfA[3] = {3.0f,-3.0f, 1.0f};

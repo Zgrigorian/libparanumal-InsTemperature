@@ -30,6 +30,34 @@ SOFTWARE.
 void insHeatLaplacian(ins_t *ins){
    
    mesh_t *mesh = ins->mesh;
+   if(mesh->totalHaloPairs>0){
+      ins->heatLaplacianHaloExtractKernel(mesh->Nelements,
+                                          mesh->totalHaloPairs,
+                                          mesh->o_haloElementList,
+                                          ins->o_T,
+                                          ins->o_Tx,
+                                          ins->o_Ty,
+                                          ins->o_hHaloBuffer);
+    // copy extracted halo to HOST
+    ins->o_hHaloBuffer.copyTo(ins->hSendBuffer);
+
+    // start halo exchange
+    meshHaloExchangeStart(mesh,
+                         mesh->Np*(ins->NVfields+1)*sizeof(dfloat),
+                         ins->hSendBuffer,
+                         ins->hRecvBuffer);
+
+      meshHaloExchangeFinish(mesh);
+
+      ins->o_hHaloBuffer.copyFrom(ins->hRecvBuffer);
+
+      ins->heatLaplacianHaloScatterKernel(mesh->Nelements,
+                                          mesh->totalHaloPairs,
+                                          ins->o_T,
+                                          ins->o_Tx,
+                                          ins->o_Ty,
+                                          ins->o_hHaloBuffer);
+   }
       ins->heatLaplacianKernel(mesh->Nelements,
                             mesh->o_vmapM,
                             mesh->o_vmapP,
